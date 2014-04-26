@@ -1,0 +1,164 @@
+//Mashup of am33xx_pwm, bone_pwm_PX_Y, cape-bone-pru, and cape-bone-pinmux-test.
+
+/dts-v1/;
+/plugin/;
+
+/ {
+	compatible = "ti,beaglebone", "ti,beaglebone-black";
+
+	/* identification */
+	part-number = "siegx3_cnc";
+	version = "00A0";
+
+	/* Resources used */
+	exclusive-use =
+		/* the pin header uses */
+		"P9.14",		/* x axis pul pwm: ehrpwm1A */
+		"P9.22",		/* y axis pul pwm: ehrpwm0A */
+		"P9.42",		/* z axis pul pwm: eCAP0_in_PWM0_out */
+		"P9.11",		/* x axis dir gpio: gpio0[30] */
+		"P9.12",		/* y axis dir gpio: gpio1[28] */
+		"P9.13",		/* z axis dir gpio: gpio0[31] */
+		"P8.11",		/* sensor SSY */
+		"P8.12",		/* xaxis sensor DATA */
+		"P8.15",		/* yaxis sensor DATA */
+		"P8.16",		/* zaxis sensor DATA */
+		/* the hardware IP uses */
+		"ehrpwm1A",
+		"ehrpwm0A",
+		"eCAP0_in_PWM0_out";
+
+	fragment@0 {
+		target = <&epwmss0>;
+		__overlay__ {status = "okay";};
+	};
+
+	fragment@1 {
+		target = <&ehrpwm0>;
+		__overlay__ {status = "okay";};
+	};
+
+	fragment@2 {
+		target = <&ecap0>;
+		__overlay__ {status = "okay";};
+	};
+
+	fragment@3 {
+		target = <&epwmss1>;
+		__overlay__ {status = "okay";};
+	};
+
+	fragment@4 {
+		target = <&ehrpwm1>;
+		__overlay__ {status = "okay";};
+	};
+
+	fragment@5 {
+		target = <&ecap1>;
+		__overlay__ {status = "okay";};
+	};
+
+	fragment@6 {
+		target = <&am33xx_pinmux>;
+
+		__overlay__ {
+			x_axis_pwm: x_axis_pwm_pins {
+				pinctrl-single,pins = <
+					0x048  0x6
+				>;
+			};
+
+			y_axis_pwm: y_axis_pwm_pins {
+				pinctrl-single,pins = <
+					0x150  0x3
+				>;
+			};
+
+			z_axis_pwm: z_axis_pwm_pins {
+				pinctrl-single,pins = <
+					0x164  0x0
+				>;
+			};
+
+			gpio: gpio_pins {
+				pinctrl-single,pins = <
+					0x70 0x67
+					0x78 0x67
+					0x74 0x67
+				>;
+			};
+
+			pruicss_pins: pinmux_pruicss_pins{
+				pinctrl-single,pins = <
+					0x30 0x27 /* x DATA */
+					0x3C 0x27 /* y DATA */
+					0x38 0x27 /* z DATA */
+					0x34 0x06 /* SSY */
+				>;
+			};
+		};
+	};
+
+	fragment@7 {
+		target = <&ocp>;
+
+		__overlay__ {
+			x_axis_pwm {
+				compatible	= "pwm_test";
+				pwms 		= <&ehrpwm1 0 500000 1>;
+				pwm-names 	= "x_axis_pwm";
+
+				pinctrl-names	= "default";
+				pinctrl-0	= <&x_axis_pwm>;
+
+				enabled		= <0>;
+				duty		= <0>;
+				status 		= "okay";
+			};
+
+			y_axis_pwm {
+				compatible = "pwm_test";
+				pwms 		= <&ehrpwm0 0 500000 1>;
+				pwm-names 	= "y_axis_pwm";
+
+				pinctrl-names	= "default";
+				pinctrl-0	= <&y_axis_pwm>;
+
+				enabled		= <0>;
+				duty		= <0>;
+				status 		= "okay";
+			};
+
+			z_axis_pwm {
+				compatible = "pwm_test";
+				pwms 		= <&ecap0 0 500000 1>;
+				pwm-names 	= "z_axis_pwm";
+
+				pinctrl-names	= "default";
+				pinctrl-0	= <&z_axis_pwm>;
+
+				enabled		= <0>;
+				duty		= <0>;
+				status 		= "okay";
+			};
+
+			test_helper: helper {
+				compatible = "bone-pinmux-helper";
+				pinctrl-names = "default";
+				pinctrl-0 = <&gpio>;
+				status = "okay";
+			};
+		};
+	};
+
+	fragment@8{
+		target = <&pruss>;
+
+		__overlay__ {
+			status = "okay";
+			pinctrl-names = "default";
+			pinctrl-0 = <&pruicss_pins>;
+		};
+	};
+};
+
